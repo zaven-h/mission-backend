@@ -1,0 +1,24 @@
+{
+    "name": "mission-backend",
+    "version": "1.0.0",
+    "main": "./src/index.js",
+    "license": "MIT",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "dev": "nodemon -r esm ./src/index.js",
+        "start": "node -r esm ./src/index.js"
+    },
+    "dependencies": {
+        "apollo-server-express": "^2.11.0",
+        "bcrypt": "^4.0.1",
+        "body-parser": "^1.19.0",
+        "esm": "^3.2.25",
+        "express-jwt": "^5.3.3",
+        "graphql": "^15.0.0",
+        "jsonwebtoken": "^8.5.1",
+        "mongoose": "^5.9.7"
+    },
+    "devDependencies": {
+        "nodemon": "^2.0.2"
+    }
+}
