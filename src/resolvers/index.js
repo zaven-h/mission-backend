@@ -1,35 +1,33 @@
-// import db from "./models";
-import mongoose from "mongoose";
 import bcrypt from "bcrypt";
-import jsonwebtoken from "jsonwebtoken";
-import { jwtSecret } from "../../config/keys";
+import mongoose from "mongoose";
+import { AuthenticationError } from "apollo-server-express";
+import { createTokens } from "../middleware/auth";
 
 const User = mongoose.model("User");
 const Org = mongoose.model("Org");
 const Task = mongoose.model("Task");
 const Role = mongoose.model("Role");
 
-const requireAuthentication = ({ user }) => {
-    if (!user) {
-        throw new Error("You are not authenticated.");
+const requireAuthentication = (req) => {
+    if (!req.userId) {
+        throw new AuthenticationError("User is not authenticated");
     }
 };
 
 export default {
     Query: {
-        async me(_, args, context) {
-            requireAuthentication(context);
+        async me(_, __, { req }) {
+            requireAuthentication(req);
 
-            // user is authenticated
-            return await User.findById(context.user.id);
+            return await User.findById(req.userId);
         },
-        async users(_, args, context) {
-            requireAuthentication(context);
+        async users(_, ___, { req }) {
+            requireAuthentication(req);
 
             return await User.find({}).exec();
         },
-        async orgs(_, args, context) {
-            requireAuthentication(context);
+        async orgs(_, args, { req }) {
+            requireAuthentication(req);
 
             return await Org.aggregate([
                 {
@@ -221,23 +219,37 @@ export default {
                 password: await bcrypt.hash(password, 10),
             });
 
-            return jsonwebtoken.sign({ id: user.id, email: user.email }, jwtSecret, { expiresIn: "1d" });
+            return jsonwebtoken.sign({ id: user.id, email: user.email }, ACCESS_TOKEN, { expiresIn: "1d" });
         },
         async login(_, { email, password }, context) {
             const user = await User.findOne({ email: email });
-
             if (!user) {
                 throw new Error("No user found with that email");
             }
 
             const valid = await bcrypt.compare(password, user.password);
-
             if (!valid) {
                 throw new Error("Incorrect password");
             }
 
-            // return json web token
-            return jsonwebtoken.sign({ id: user.id, email: user.email }, jwtSecret, { expiresIn: "1d" });
+            const { refreshToken, accessToken } = createTokens(user);
+
+            context.res.cookie("refresh-token", refreshToken);
+            context.res.cookie("access-token", accessToken);
+
+            return user;
+        },
+        async invalidateTokens(_, __, { req }) {
+            if (!req.userId) {
+                return false;
+            }
+
+            const user = await User.findOneAndUpdate({ _id: req.userId }, { $inc: { _jwt_version: 1 } });
+            if (!user) {
+                return false;
+            }
+
+            return true;
         },
         async createOrg(obj, { name }, context) {
             requireAuthentication(context);

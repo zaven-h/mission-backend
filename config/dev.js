@@ -9,6 +9,7 @@ export const MongoKeys = {
     URI: "mongodb+srv://web-api:LH82EuQ1E42sky1j@cluster0-6gfhg.mongodb.net/mission?retryWrites=true&w=majority",
 };
 
-export const jwtSecret = "dev is awesome!";
+export const ACCESS_TOKEN_SECRET = "asiwenf32io";
+export const REFRESH_TOKEN_SECRET = "askdfjasdkj";
 
 export const CookieKey = "i2nfioxcinciwp3929djsl";

@@ -55,7 +55,8 @@ export default gql`
 
     type Mutation {
         signup(email: String!, password: String!): String
-        login(email: String!, password: String!): String
+        login(email: String!, password: String!): User
+        invalidateTokens: Boolean
         createOrg(name: String!): Org
         addTask(name: String!, parent: String, org: String!, isPrivate: Boolean): Task
         addTaskWatcher(userId: String!, taskId: String!): UpdateResponse
