@@ -16,7 +16,7 @@ const requireAuthentication = (req) => {
 
 export default {
     Query: {
-        async me(_, __, { req }) {
+        async currentUser(_, __, { req }) {
             requireAuthentication(req);
 
             return await User.findById(req.userId);

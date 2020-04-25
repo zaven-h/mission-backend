@@ -46,7 +46,7 @@ export default gql`
     }
 
     type Query {
-        me: User
+        currentUser: User
         users: [User!]
         orgs: [Org]
         tasks: [Task]
