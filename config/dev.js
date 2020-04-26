@@ -12,4 +12,4 @@ export const MongoKeys = {
 export const ACCESS_TOKEN_SECRET = "asiwenf32io";
 export const REFRESH_TOKEN_SECRET = "askdfjasdkj";
 
-export const CookieKey = "i2nfioxcinciwp3929djsl";
+// export const CookieKey = "i2nfioxcinciwp3929djsl";
