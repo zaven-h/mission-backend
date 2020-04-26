@@ -55,11 +55,16 @@ server.applyMiddleware({ app, path: GRAPHQL_URL, cors: false });
 /**
  * Start Server
  */
-// try {
-app.listen(8080, () => {
-    console.log(`🚀 Server running on http://localhost:8080${server.graphqlPath}`);
-});
-// } catch (error) {
-//     console.error(error);
-
-// }
+try {
+    if (process.env.NODE_ENV === "production") {
+        app.listen({ port: process.env.PORT || 8080 }, () => {
+            console.log(`🚀 Server running on http://mission-backend.herokuapp.com:${process.env.PORT}${server.graphqlPath}`);
+        });
+    } else {
+        app.listen({ port: 8080 }, () => {
+            console.log(`🚀 Server running on http://localhost:8080${server.graphqlPath}`);
+        });
+    }
+} catch (error) {
+    console.error(error);
+}
