@@ -27,13 +27,19 @@ db.once("open", () => console.log("--> db connected"));
  */
 const app = express();
 
+let allowed_origin = "http://localhost:3000";
+if (process.env.NODE_ENV === "production") {
+    allowed_origin = "https://mission-frontend.herokuapp.com";
+}
+
 app.use(
     cors({
-        origin: () => {
-            if (process.env.NODE_ENV === "production") {
-                return "https://mission-frontend.herokuapp.com";
+        origin: (origin, callback) => {
+            if (origin === allowed_origin) {
+                callback(null, true);
+            } else {
+                callback(new Error(`Origin not allowed by CORS: ${origin}`));
             }
-            return "http://localhost:3000";
         },
         credentials: true,
     })
