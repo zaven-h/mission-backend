@@ -30,9 +30,9 @@ const app = express();
 /**
  * Setup CORS policy
  */
-let allowedOrigins = ["http://localhost:3000", "http://localhost:8080"];
+let allowedOrigins = [undefined, "http://localhost:3000", "http://localhost:8080"];
 if (process.env.NODE_ENV === "production") {
-    allowedOrigins = ["https://mission-frontend.herokuapp.com"];
+    allowedOrigins = ["http://mission-frontend.herokuapp.com", "https://mission-frontend.herokuapp.com"];
 }
 app.use(
     cors({

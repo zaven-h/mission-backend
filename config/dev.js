@@ -6,7 +6,7 @@ export const GoogleKeys = {
 };
 
 export const MongoKeys = {
-    URI: "mongodb+srv://web-api:LH82EuQ1E42sky1j@cluster0-6gfhg.mongodb.net/mission?retryWrites=true&w=majority",
+    URI: "mongodb+srv://web-api:LH82EuQ1E42sky1j@cluster0-6gfhg.mongodb.net/mission-dev?retryWrites=true&w=majority",
 };
 
 export const ACCESS_TOKEN_SECRET = "asiwenf32io";
