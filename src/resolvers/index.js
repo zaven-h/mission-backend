@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import mongoose from "mongoose";
-import { AuthenticationError } from "apollo-server-express";
+import { AuthenticationError, UserInputError } from "apollo-server-express";
 import { createTokens } from "../middleware/auth";
 
 const User = mongoose.model("User");
@@ -62,8 +62,8 @@ export default {
                 },
             ]).exec();
         },
-        async tasks(_, args, context) {
-            requireAuthentication(context);
+        async tasks(_, args, { req }) {
+            requireAuthentication(req);
 
             return await Task.aggregate([
                 {
@@ -98,8 +98,8 @@ export default {
                 },
             ]).exec();
         },
-        async getTaskTree(obj, { org, includePrivate }, context) {
-            requireAuthentication(context);
+        async getTaskTree(obj, { org, includePrivate }, { req }) {
+            requireAuthentication(req);
 
             const roots = await Task.aggregate([
                 // Get the root nodes (no parent task)
@@ -213,14 +213,23 @@ export default {
         },
     },
     Mutation: {
-        async signup(_, { email, password }, context) {
+        async signup(_, { email, password, password2 }, context) {
+            if (password !== password2) {
+                throw new UserInputError("Passwords do not match");
+            }
+
+            const existingUser = await User.findOne({ email: email });
+            if (existingUser) {
+                throw new UserInputError("A user with this email already exists.");
+            }
+
             const user = await User.create({
                 email,
                 password: await bcrypt.hash(password, 10),
             });
 
             if (!user) {
-                throw new Error("User could not be created");
+                throw new UserInputError("User could not be created. Dunno what happend.");
             }
 
             return true;
@@ -228,12 +237,12 @@ export default {
         async login(_, { email, password }, context) {
             const user = await User.findOne({ email: email });
             if (!user) {
-                throw new Error("No user found with that email");
+                throw new UserInputError("No user found with that email");
             }
 
             const valid = await bcrypt.compare(password, user.password);
             if (!valid) {
-                throw new Error("Incorrect password");
+                throw new UserInputError("Incorrect password");
             }
 
             const { refreshToken, accessToken } = createTokens(user);

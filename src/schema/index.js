@@ -40,7 +40,7 @@ export default gql`
         # children: [Task]
     }
 
-    type UpdateResponse {
+    type TaskUpdateResponse {
         numMatched: Int
         numModified: Int
     }
@@ -54,15 +54,15 @@ export default gql`
     }
 
     type Mutation {
-        signup(email: String!, password: String!): Boolean
+        signup(email: String!, password: String!, password2: String!): String
         login(email: String!, password: String!): User
         invalidateTokens: Boolean
         createOrg(name: String!): Org
         addTask(name: String!, parent: String, org: String!, isPrivate: Boolean): Task
-        addTaskWatcher(userId: String!, taskId: String!): UpdateResponse
-        removeTaskWatcher(userId: String!, taskId: String!): UpdateResponse
-        addTaskAssignee(userId: String!, taskId: String!): UpdateResponse
-        removeTaskAssignee(userId: String!, taskId: String!): UpdateResponse
+        addTaskWatcher(userId: String!, taskId: String!): TaskUpdateResponse
+        removeTaskWatcher(userId: String!, taskId: String!): TaskUpdateResponse
+        addTaskAssignee(userId: String!, taskId: String!): TaskUpdateResponse
+        removeTaskAssignee(userId: String!, taskId: String!): TaskUpdateResponse
         updateTaskProperties(taskId: String!, properties: TaskInputProperties!): Task
     }
 `;
