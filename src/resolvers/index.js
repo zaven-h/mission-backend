@@ -219,7 +219,11 @@ export default {
                 password: await bcrypt.hash(password, 10),
             });
 
-            return jsonwebtoken.sign({ id: user.id, email: user.email }, ACCESS_TOKEN, { expiresIn: "1d" });
+            if (!user) {
+                throw new Error("User could not be created");
+            }
+
+            return true;
         },
         async login(_, { email, password }, context) {
             const user = await User.findOne({ email: email });

@@ -54,7 +54,7 @@ export default gql`
     }
 
     type Mutation {
-        signup(email: String!, password: String!): String
+        signup(email: String!, password: String!): Boolean
         login(email: String!, password: String!): User
         invalidateTokens: Boolean
         createOrg(name: String!): Org

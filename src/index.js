@@ -27,11 +27,13 @@ db.once("open", () => console.log("--> db connected"));
  */
 const app = express();
 
+/**
+ * Setup CORS policy
+ */
 let allowed_origin = "http://localhost:3000";
 if (process.env.NODE_ENV === "production") {
     allowed_origin = "https://mission-frontend.herokuapp.com";
 }
-
 app.use(
     cors({
         origin: (origin, callback) => {
@@ -44,6 +46,7 @@ app.use(
         credentials: true,
     })
 );
+
 app.use(cookieParser());
 
 app.use(authJWT);
