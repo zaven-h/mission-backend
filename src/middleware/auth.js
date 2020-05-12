@@ -8,7 +8,7 @@ const User = mongoose.model("User");
  * Generate JWT Auth Tokens
  */
 export const createTokens = (user) => {
-    const refreshToken = jwt.sign({ userId: user.id, _jwt_version: user.count }, REFRESH_TOKEN_SECRET, { expiresIn: "7d" });
+    const refreshToken = jwt.sign({ userId: user.id, _jwt_version: user.count || 0 }, REFRESH_TOKEN_SECRET, { expiresIn: "7d" });
     const accessToken = jwt.sign({ userId: user.id }, ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
 
     return { refreshToken, accessToken };
