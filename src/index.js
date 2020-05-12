@@ -29,6 +29,7 @@ const app = express();
 
 /**
  * Setup CORS policy
+ * TODO Fix SSL Certs on host so I can disable http to backend
  */
 let allowedOrigins = [undefined, "http://localhost:3000", "http://localhost:8080"];
 if (process.env.NODE_ENV === "production") {

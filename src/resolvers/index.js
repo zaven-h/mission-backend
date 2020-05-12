@@ -21,6 +21,11 @@ export default {
 
             return await User.findById(req.userId);
         },
+        async org(_, { orgId }, { req }) {
+            requireAuthentication(req);
+
+            return await Org.findById(orgId);
+        },
         async users(_, ___, { req }) {
             requireAuthentication(req);
 
@@ -98,20 +103,30 @@ export default {
                 },
             ]).exec();
         },
-        async getTaskTree(obj, { org, includePrivate }, { req }) {
+        async getTaskTree(obj, { orgId, includePrivate }, { req }) {
             requireAuthentication(req);
 
+            /**
+             * Steps to retrieve node tree:
+             * - get only the root nodes
+             * - get the children of each root node and add to an array on each root node
+             * - unwind the children arrays (lots of duplicate root nodes)
+             * - populate all fields of children nodes
+             * - remove duplicate root nodes
+             */
             const roots = await Task.aggregate([
-                // Get the root nodes (no parent task)
+                // Get the root nodes (tasks with no parent)
                 {
                     $match: {
-                        org: mongoose.Types.ObjectId(org),
+                        org: mongoose.Types.ObjectId(orgId),
                         parent: {
                             $exists: false,
                         },
                     },
                 },
-                // Get the children of each root task
+                // Get the children of each root task. This will add a
+                // "children" array to the document including all
+                // descendant tasks.
                 {
                     $graphLookup: {
                         from: "tasks",
@@ -121,11 +136,15 @@ export default {
                         as: "children",
                     },
                 },
-                // unwind the children so each 'children' attribute is an object.
-                // Now we can do lookups on the children fields
+                // Unwind the "children" array. This will create a duplicate root document for
+                // each child in the array and promote that child task to an object without the array.
+                // Later, you will need to remove the duplicate root nodes. But, this is the only way
+                // I found to do the lookups on nested documents. Lookups on nested array documents doesn't
+                // appear to have a syntax to achieve. Now we can do lookups on the children fields
                 {
                     $unwind: {
                         path: "$children",
+                        preserveNullAndEmptyArrays: true,
                     },
                 },
                 // join the fields of child objects
@@ -140,6 +159,7 @@ export default {
                 {
                     $unwind: {
                         path: "$children.creator",
+                        preserveNullAndEmptyArrays: true,
                     },
                 },
                 {
@@ -204,7 +224,12 @@ export default {
             ]).exec();
             let allTasks = [];
             roots.forEach((rootNode) => {
-                allTasks.push(...rootNode.children);
+                rootNode.children.forEach((childNode) => {
+                    if ("_id" in childNode) {
+                        allTasks.push(childNode);
+                    }
+                });
+                // allTasks.push(...rootNode.children);
                 delete rootNode.children;
                 allTasks.push(rootNode);
             });
@@ -264,20 +289,20 @@ export default {
 
             return true;
         },
-        async createOrg(obj, { name }, context) {
-            requireAuthentication(context);
+        async createOrg(obj, { name }, { req }) {
+            requireAuthentication(req);
 
-            const org = new Org({ creator: context.user.id });
+            const org = new Org({ creator: req.userId });
             org.properties.name = name;
-            org.managers.push(context.user.id);
+            org.managers.push(req.userId);
             await org.save();
 
             return org;
         },
-        async addTask(obj, { name, parent, org, isPrivate }, context) {
-            requireAuthentication(context);
+        async addTask(obj, { name, parent, orgId, isPrivate }, { req }) {
+            requireAuthentication(req);
 
-            const task = new Task({ org: org, creator: context.user.id });
+            const task = new Task({ org: orgId, creator: req.userId });
             task.properties.name = name;
             task.properties.isPrivate = isPrivate || false;
 
@@ -288,8 +313,8 @@ export default {
 
             return task;
         },
-        async addTaskWatcher(obj, { userId, taskId }, context) {
-            requireAuthentication(context);
+        async addTaskWatcher(obj, { userId, taskId }, { req }) {
+            requireAuthentication(req);
 
             const result = await Task.updateOne({ _id: taskId }, { $push: { watchers: userId } });
             return {
@@ -297,8 +322,8 @@ export default {
                 numModified: result.nModified,
             };
         },
-        async removeTaskWatcher(obj, { userId, taskId }, context) {
-            requireAuthentication(context);
+        async removeTaskWatcher(obj, { userId, taskId }, { req }) {
+            requireAuthentication(req);
 
             const result = await Task.updateOne({ _id: taskId }, { $pull: { watchers: userId } });
             return {
@@ -306,8 +331,8 @@ export default {
                 numModified: result.nModified,
             };
         },
-        async addTaskAssignee(obj, { userId, taskId }, context) {
-            requireAuthentication(context);
+        async addTaskAssignee(obj, { userId, taskId }, { req }) {
+            requireAuthentication(req);
 
             const result = await Task.updateOne({ _id: taskId }, { $push: { assignees: userId } });
             return {
@@ -315,8 +340,8 @@ export default {
                 numModified: result.nModified,
             };
         },
-        async removeTaskAssignee(obj, { userId, taskId }, context) {
-            requireAuthentication(context);
+        async removeTaskAssignee(obj, { userId, taskId }, { req }) {
+            requireAuthentication(req);
 
             const result = await Task.updateOne({ _id: taskId }, { $pull: { assignees: userId } });
             return {
@@ -324,8 +349,8 @@ export default {
                 numModified: result.nModified,
             };
         },
-        async updateTaskProperties(obj, { taskId, properties }, context) {
-            requireAuthentication(context);
+        async updateTaskProperties(obj, { taskId, properties }, { req }) {
+            requireAuthentication(req);
 
             const result = await Task.findOne({ _id: taskId });
             result.properties = { ...result.properties, ...properties };

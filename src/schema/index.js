@@ -48,9 +48,10 @@ export default gql`
     type Query {
         currentUser: User
         users: [User!]
+        org(orgId: String!): Org
         orgs: [Org]
         tasks: [Task]
-        getTaskTree(org: String!, includePrivate: Boolean): [Task]
+        getTaskTree(orgId: String!, includePrivate: Boolean): [Task]
     }
 
     type Mutation {
@@ -58,11 +59,11 @@ export default gql`
         login(email: String!, password: String!): User
         invalidateTokens: Boolean
         createOrg(name: String!): Org
-        addTask(name: String!, parent: String, org: String!, isPrivate: Boolean): Task
+        addTask(name: String!, parent: String, orgId: String!, isPrivate: Boolean): Task
+        updateTaskProperties(taskId: String!, properties: TaskInputProperties!): Task
         addTaskWatcher(userId: String!, taskId: String!): TaskUpdateResponse
         removeTaskWatcher(userId: String!, taskId: String!): TaskUpdateResponse
         addTaskAssignee(userId: String!, taskId: String!): TaskUpdateResponse
         removeTaskAssignee(userId: String!, taskId: String!): TaskUpdateResponse
-        updateTaskProperties(taskId: String!, properties: TaskInputProperties!): Task
     }
 `;
