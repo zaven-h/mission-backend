@@ -277,6 +277,11 @@ export default {
 
             return user;
         },
+        async logout(_, __, context) {
+            context.res.clearCookie('refresh-token');
+            context.res.clearCookie('access-token');
+            return true;
+        },
         async invalidateTokens(_, __, { req }) {
             if (!req.userId) {
                 return false;
